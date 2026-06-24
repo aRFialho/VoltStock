@@ -21,7 +21,8 @@ import {
   Tags,
   Users
 } from 'lucide-react';
-import { readSession } from '@/lib/api';
+import { ensureSession, readSession } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Gauge },
@@ -41,11 +42,19 @@ const navItems = [
 export function AppShell({ children, title, action }: { children: React.ReactNode; title: string; action?: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const session = readSession();
+  const [session, setSession] = useState(() => readSession());
+
+  useEffect(() => {
+    ensureSession().then((nextSession) => {
+      if (nextSession) setSession(nextSession);
+    });
+  }, []);
 
   function logout() {
     window.localStorage.removeItem('voltstock.session');
-    router.push('/login');
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+      window.location.href = '/login';
+    });
   }
 
   return (

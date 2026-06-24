@@ -4,6 +4,7 @@ import { loginSchema, refreshTokenSchema } from '@voltstock/shared';
 import { pool } from '../../db/pool';
 import { authenticate } from '../../http/authenticate';
 import type { JwtUserPayload } from '../../types/auth';
+import { authenticateFromSuiteCookie } from './suiteAuth';
 
 function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -14,6 +15,19 @@ async function signAccessToken(app: FastifyInstance, payload: JwtUserPayload) {
 }
 
 export async function authRoutes(app: FastifyInstance) {
+  app.get('/suite-session', async (request, reply) => {
+    const suiteSession = await authenticateFromSuiteCookie(app, request);
+    if (!suiteSession) {
+      return reply.code(401).send({ error: 'unauthorized', message: 'Sessao da suite invalida ou sem acesso ao Volt Stock.' });
+    }
+
+    return {
+      accessToken: suiteSession.accessToken,
+      refreshToken: '',
+      user: suiteSession.user
+    };
+  });
+
   app.post('/login', async (request, reply) => {
     const input = loginSchema.parse(request.body);
 

@@ -1,10 +1,10 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, ShieldCheck } from 'lucide-react';
-import { API_URL, writeSession, type StoredSession } from '@/lib/api';
+import { API_URL, ensureSession, writeSession, type StoredSession } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +13,12 @@ export default function LoginPage() {
   const [tenantSlug, setTenantSlug] = useState('volt-stock-master');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    ensureSession().then((session) => {
+      if (session?.accessToken) router.replace('/dashboard');
+    });
+  }, [router]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,6 +29,7 @@ export default function LoginPage() {
       const response = await fetch(`${API_URL}/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password, tenantSlug })
       });
 

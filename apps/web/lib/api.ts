@@ -1,4 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+export const BASE_PATH = process.env.NEXT_PUBLIC_VOLTSTOCK_BASE_PATH ?? '/voltstock';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? `${BASE_PATH}/api`;
 
 export type SessionUser = {
   id: string;
@@ -39,8 +40,27 @@ export function writeSession(session: StoredSession) {
   window.localStorage.setItem('voltstock.session', JSON.stringify(session));
 }
 
+export async function ensureSession(): Promise<StoredSession | null> {
+  const current = readSession();
+  if (current?.accessToken) {
+    return current;
+  }
+
+  const response = await fetch(`${API_URL}/v1/auth/suite-session`, {
+    credentials: 'include'
+  }).catch(() => null);
+  if (!response?.ok) return null;
+
+  const session = (await response.json()) as StoredSession;
+  if (session?.accessToken) {
+    writeSession(session);
+    return session;
+  }
+  return null;
+}
+
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const session = readSession();
+  const session = await ensureSession();
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
 
@@ -50,7 +70,8 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers
+    headers,
+    credentials: 'include'
   });
 
   if (!response.ok) {
