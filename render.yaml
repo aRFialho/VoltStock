@@ -3,7 +3,7 @@ services:
     name: voltstock-api
     env: node
     rootDir: .
-    buildCommand: npm install && npm --workspace @voltstock/api run build
+    buildCommand: npm install && npm --workspace @voltstock/shared run build && npm --workspace @voltstock/api run build
     startCommand: npm --workspace @voltstock/api run start
     healthCheckPath: /health
     envVars:
@@ -24,7 +24,7 @@ services:
     name: voltstock-web
     env: node
     rootDir: .
-    buildCommand: npm install && npm --workspace @voltstock/web run build
+    buildCommand: npm install && npm --workspace @voltstock/shared run build && npm --workspace @voltstock/web run build
     startCommand: npm --workspace @voltstock/web run start
     envVars:
       - key: NODE_ENV
@@ -36,7 +36,7 @@ services:
     name: voltstock-worker
     env: node
     rootDir: .
-    buildCommand: npm install && npm --workspace @voltstock/api run build
+    buildCommand: npm install && npm --workspace @voltstock/shared run build && npm --workspace @voltstock/api run build
     startCommand: npm --workspace @voltstock/api run worker
     envVars:
       - key: NODE_ENV
@@ -51,7 +51,7 @@ services:
     env: node
     rootDir: .
     schedule: "*/15 * * * *"
-    buildCommand: npm install && npm --workspace @voltstock/api run build
+    buildCommand: npm install && npm --workspace @voltstock/shared run build && npm --workspace @voltstock/api run build
     startCommand: npm --workspace @voltstock/api run cron
     envVars:
       - key: NODE_ENV
