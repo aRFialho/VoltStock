@@ -1,0 +1,35 @@
+# Felomenau T-Shirts V1.3 | Android native Java | local SQLite
+# O projeto Android fica na subpasta felomenau-tshirts deste repositório.
+# Para compilar, selecione a branch felomenau-v1.3-apk no Codemagic.
+workflows:
+  felomenau-android-debug:
+    name: Felomenau V1.3 - APK instalavel
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      java: 17
+      node: lts
+    scripts:
+      - name: Conferir testes offline (estoque e vendas)
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR/felomenau-tshirts"
+          node --test tests/*.test.js
+      - name: Preparar SDK Android
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR/felomenau-tshirts"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Instalar Gradle 8.9
+        script: |
+          set -eu
+          curl -fsSL --retry 3 'https://services.gradle.org/distributions/gradle-8.9-bin.zip' -o /tmp/gradle-8.9-bin.zip
+          unzip -q /tmp/gradle-8.9-bin.zip -d /tmp
+      - name: Compilar APK debug
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR/felomenau-tshirts"
+          /tmp/gradle-8.9/bin/gradle :app:assembleDebug --no-daemon --stacktrace
+    artifacts:
+      - felomenau-tshirts/app/build/outputs/apk/debug/*.apk
