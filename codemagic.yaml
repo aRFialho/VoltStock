@@ -1,32 +1,59 @@
-# Felomenau T-Shirts V1.3 | Android native Java | local SQLite
-# O projeto Android fica na subpasta felomenau-tshirts deste repositório.
-# Para compilar, selecione a branch felomenau-v1.3-apk no Codemagic.
+# Felomenau Store V1.3 | Android Java | SQLite offline
+# Build this project from the felomenau-v1.3-apk branch.
 workflows:
   felomenau-android-debug:
-    name: Felomenau V1.3 - APK instalavel
+    name: Felomenau Store V1.3 - APK
     instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
       java: 17
       node: lts
     scripts:
-      - name: Conferir testes offline (estoque e vendas)
+      - name: Testar estoque e vendas offline
         script: |
           set -eu
           cd "$CM_BUILD_DIR/felomenau-tshirts"
           node --test tests/*.test.js
-      - name: Preparar SDK Android
+      - name: Configurar SDK Android 35
         script: |
           set -eu
-          cd "$CM_BUILD_DIR/felomenau-tshirts"
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-          sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
-      - name: Instalar Gradle 8.9
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/share/android-sdk}}"
+          if [ ! -d "$SDK_ROOT" ]; then
+            echo "Android SDK nao encontrado: $SDK_ROOT"
+            exit 1
+          fi
+          printf 'sdk.dir=%s\n' "$SDK_ROOT" > "$CM_BUILD_DIR/felomenau-tshirts/local.properties"
+          echo "Android SDK em $SDK_ROOT"
+          if [ -d "$SDK_ROOT/platforms/android-35" ] && [ -d "$SDK_ROOT/build-tools/35.0.0" ]; then
+            echo "Android 35 e Build Tools 35.0.0 ja instalados"
+          else
+            SDKMANAGER=""
+            for candidate in "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$SDK_ROOT/tools/bin/sdkmanager" "/usr/local/share/android-sdk/cmdline-tools/latest/bin/sdkmanager"; do
+              if [ -x "$candidate" ]; then
+                SDKMANAGER="$candidate"
+                break
+              fi
+            done
+            if [ -z "$SDKMANAGER" ] && [ -d "$SDK_ROOT/cmdline-tools" ]; then
+              SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+            fi
+            if [ -z "$SDKMANAGER" ]; then
+              echo "SDK 35 ausente e sdkmanager nao foi encontrado no Android SDK: $SDK_ROOT"
+              exit 1
+            fi
+            echo "Instalando pacotes via $SDKMANAGER"
+            yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+            "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install 'platforms;android-35' 'build-tools;35.0.0'
+          fi
+      - name: Preparar Gradle 8.9
         script: |
           set -eu
-          curl -fsSL --retry 3 'https://services.gradle.org/distributions/gradle-8.9-bin.zip' -o /tmp/gradle-8.9-bin.zip
-          unzip -q /tmp/gradle-8.9-bin.zip -d /tmp
-      - name: Compilar APK debug
+          if [ ! -x /tmp/gradle-8.9/bin/gradle ]; then
+            curl -fL --retry 3 'https://services.gradle.org/distributions/gradle-8.9-bin.zip' -o /tmp/gradle-8.9-bin.zip
+            unzip -q -o /tmp/gradle-8.9-bin.zip -d /tmp
+          fi
+          /tmp/gradle-8.9/bin/gradle --version
+      - name: Compilar APK instalavel
         script: |
           set -eu
           cd "$CM_BUILD_DIR/felomenau-tshirts"
