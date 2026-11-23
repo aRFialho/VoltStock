@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0c0f">
+  <meta name="color-scheme" content="dark">
+  <title>Felomenau | Rock Store</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand" aria-label="Felomenau T-Shirts">
+        <div class="brand-icon">F<span>✦</span></div>
+        <div><strong>FELOMENAU</strong><small>T-SHIRTS · ROCK STORE</small></div>
+      </div>
+      <div class="nav-label">GERENCIAMENTO</div>
+      <nav class="nav" id="desktopNav" aria-label="Menu principal"></nav>
+      <div class="sidebar-bottom">
+        <span class="offline-dot"></span><b>100% OFFLINE</b>
+        <p>Dados armazenados no aparelho</p>
+        <small>EDIÇÃO ROCK / V1.3</small>
+      </div>
+    </aside>
+    <main class="main" id="view"></main>
+  </div>
+  <nav id="mobileNav" class="mobile-nav" aria-label="Menu principal para celular"></nav>
+  <div id="overlay"></div>
+  <div id="toast" class="toast" aria-live="polite" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
+const src=fs.readFileSync(path.join(__dirname,'..','app','src','main','assets','app.js'),'utf8');
+const ids={},elem=id=>ids[id]??(ids[id]={innerHTML:'',value:'',textContent:'',focus(){},classList:{toggle(){}}});
+const ctx={document:{getElementById:elem,querySelectorAll(){return[]}},window:{addEventListener(){},scrollTo(){}},console,Android:{},confirm(){return true},setTimeout(){},clearTimeout(){}};
+vm.createContext(ctx);vm.runInContext(src,ctx);
+const data={products:[{id:1,name:'AC/DC',category:'Camiseta',archived:0,price:70},{id:2,name:'Black Sabbath',category:'Camiseta',archived:0,price:70},{id:3,name:'Nirvana',category:'Camiseta',archived:0,price:70},{id:4,name:'Ozzy',category:'Camiseta',archived:1,price:70},{id:5,name:'The Who',category:'Camiseta',archived:0,price:70}],variants:[{id:11,product_id:1,size:'M',qty:2},{id:12,product_id:1,size:'G',qty:0},{id:21,product_id:2,size:'M',qty:4},{id:22,product_id:2,size:'G',qty:5},{id:31,product_id:3,size:'M',qty:0},{id:41,product_id:4,size:'G',qty:6},{id:51,product_id:5,size:'M',qty:2}],sales:[{id:1,cancelled:0},{id:2,cancelled:1},{id:3,cancelled:0},{id:4,cancelled:0}],items:[{sale_id:1,variant_id:11,qty:5},{sale_id:1,variant_id:22,qty:3},{sale_id:2,variant_id:21,qty:100},{sale_id:3,variant_id:21,qty:2},{sale_id:3,variant_id:22,qty:1},{sale_id:4,variant_id:41,qty:11}],movements:[{variant_id:51,delta:-900,kind:'AJUSTE'}]};
+vm.runInContext(`db=${JSON.stringify(data)}`,ctx);
+const get=expr=>vm.runInContext(expr,ctx);let n=0;function check(value,expected,message){assert.deepStrictEqual(value,expected,message);n++}
+check(get('soldUnitsByProduct().get(1)'),5,'Vendas por modelo');
+check(get('soldUnitsByProduct().get(2)'),6,'Vários tamanhos');
+check(get('soldUnitsByProduct().has(5)'),false,'Ajuste não conta como venda');
+check(get('soldUnitsByProduct().get(4)'),11,'Fora de linha mantém histórico');
+check(get('soldUnitsByProduct("M").get(2)'),2,'Cancelamento excluído');
+check(get('sortBySales="most";filteredProducts().map(p=>p.name).join(",")'),'Black Sabbath,AC/DC,Nirvana,The Who','Mais vendidas');
+check(get('sortBySales="least";filteredProducts().map(p=>p.name).join(",")'),'Nirvana,The Who,AC/DC,Black Sabbath','Menos vendidas');
+check(get('sortBySales="name";filteredProducts().map(p=>p.name).join(",")'),'AC/DC,Black Sabbath,Nirvana,The Who','Nome');
+check(get('sizeFilter="G";sortBySales="most";filteredProducts().map(p=>p.name).join(",")'),'Black Sabbath,AC/DC','Ranking tamanho G');
+check(get('sizeFilter="M";sortBySales="most";filteredProducts().map(p=>p.name).join(",")'),'AC/DC,Black Sabbath,Nirvana,The Who','Ranking tamanho M');
+check(get('sizeFilter="";showArchived=true;sortBySales="most";filteredProducts()[0].name'),'Ozzy','Inclui arquivados');
+check(get('productGrid(filteredProducts()).includes("11 unidades vendidas")'),true,'Exibe quantidade vendida');
+check(get('sortBySales="least";clearProductFilters();sortBySales'),'name','Limpar filtros');
+console.log(`OK: ${n} verificações de ordenação e vendas históricas`);
