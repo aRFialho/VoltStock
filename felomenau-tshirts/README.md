@@ -1,4 +1,4 @@
-# Felomenau T-Shirts 🎸 — Android V1.3
+# Felomenau Store 🎸 — Android V1.3
 
 Projeto Android offline para **tablets e celulares**, com banco **SQLite nativo**, WebView local e interface rock. Nenhuma API, conta, servidor, assinatura ou conexão com a internet é necessária para usar o aplicativo. O logo provisório será substituído quando a marca oficial for enviada.
 
@@ -15,7 +15,7 @@ Projeto Android offline para **tablets e celulares**, com banco **SQLite nativo*
 - **Backups:** JSON exporta produtos, fotos, variações, vendas e movimentações; restauração de backups das versões 1.0–1.3; exportação de vendas CSV.
 - **UX rock:** interface preta/grafite/laranja com sidebar em tablet, navegação inferior em celular e controles maiores para toque. Funciona totalmente offline.
 
-## Instalar como APK
+## Compilar no Codemagic\n\nNo Codemagic, selecione a branch `felomenau-v1.3-apk` e o workflow `felomenau-android-debug` definido no arquivo `codemagic.yaml` na raiz do repositório. O APK de teste será disponibilizado em **Artifacts** após um build bem-sucedido.\n\n## Instalar como APK
 
 ### Compilar no GitHub Actions (sem instalar o Android Studio)
 
